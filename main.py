@@ -2,6 +2,7 @@ import os
 import sys
 
 import sklearn.model_selection
+from dochandler import extract_vocabulary
 
 
 def read_data(path):
@@ -50,6 +51,8 @@ def split_data(data, target, size):
     return sklearn.model_selection.train_test_split(data, target, test_size=size)
 
 
+
+
 train_path = sys.argv[1] + '\\train\\'
 test_data_path = sys.argv[1] + '\\test\\'
 
@@ -69,3 +72,6 @@ print(f'[INFO] - Total training data files {len(train_data)} and target classes 
 dev_data = res[1]
 dev_target = res[3]
 print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
+
+
+extract_vocabulary(train_data)
