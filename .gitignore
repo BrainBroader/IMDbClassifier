@@ -1,6 +1,7 @@
 # PyCharm
 .idea/
 venv/
+_pycache/
 
 # Misc
 description.pdf
