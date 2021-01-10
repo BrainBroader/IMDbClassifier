@@ -21,7 +21,7 @@ def extract_vocabulary(documents):
         tokens = set(document.split())
         vocab.update(tokens)
 
-    stop_words = set(stopwords.words('english'))
-    vocab.difference_update(stop_words)
+    # stop_words = set(stopwords.words('english'))
+    # vocab.difference_update(stop_words)
 
     return vocab
