@@ -2,6 +2,7 @@ import os
 import sys
 
 import sklearn.model_selection
+from dochandler import extract_vocabulary, create_vector, document_pre_processing
 
 
 def read_data(path):
@@ -70,3 +71,6 @@ print(f'[INFO] - Total training data files {len(train_data)} and target classes 
 dev_data = res[1]
 dev_target = res[3]
 print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
+
+
+

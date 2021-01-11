@@ -1,8 +1,10 @@
 from nltk.corpus import stopwords
 
+
 # TODO:remove # before sending assignment
-# import nltk
-# nltk.download('stopwords')
+import nltk
+
+# nltk.download(all)
 
 
 def extract_vocabulary(documents):
@@ -18,10 +20,49 @@ def extract_vocabulary(documents):
     vocab = set()
 
     for document in documents:
-        tokens = set(document.split())
+        tokens = document_pre_processing(document)
         vocab.update(tokens)
 
-    stop_words = set(stopwords.words('english'))
-    vocab.difference_update(stop_words)
-
     return vocab
+
+
+def create_vector(document, vocab):
+    """
+
+    Args:
+        document:
+        vocab:
+
+    Returns:
+
+    """
+    vector = []
+    tokens = document_pre_processing(document)
+    for word in vocab:
+        if word in tokens:
+            vector.append(1)
+        else:
+            vector.append(0)
+    return vector
+
+
+def document_pre_processing(document):
+    """
+
+    Args:
+        document:
+
+    Returns:
+
+    """
+
+    # document.translate(str.maketrans(", ", string.punctuation))
+    document = document.lower()
+
+    tokenizer = nltk.RegexpTokenizer(r"\w+")
+    tokens = set(tokenizer.tokenize(document))
+
+    stop_words = set(stopwords.words('english'))
+    tokens.difference_update(stop_words)
+
+    return tokens
