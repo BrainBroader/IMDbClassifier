@@ -1,6 +1,7 @@
 import os
 import sys
 
+import numpy as np
 import sklearn.model_selection
 
 from naive_bayes_clf import MultinomialNaiveBayes
@@ -74,4 +75,13 @@ dev_target = res[3]
 print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
 
 nb = MultinomialNaiveBayes()
-nb.fit(train_data, train_target)
+nb.fit(
+    np.array([train_data, train_target]).transpose(),  # document - class
+    set(train_target)                      # classes (2)
+)
+
+# d1 c_d1
+# d2 c_d2
+# d3 c_d3
+# d4 c_d4
+
