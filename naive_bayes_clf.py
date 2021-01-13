@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 from dochandler import extract_vocabulary
@@ -9,6 +11,8 @@ class MultinomialNaiveBayes:
     Attributes:
         vocabulary:
             A set of non-duplicate terms extracted from training data.
+        targets:
+            A set of target classes.
         prior:
             Prior probability of a document occurring in target class and is given by equation
                 P(c) = Nc/N
@@ -22,6 +26,7 @@ class MultinomialNaiveBayes:
     def __init__(self):
         """ Initializes Multinomial Naive Bayes. """
         self.vocabulary = None
+        self.targets = None
         self.prior = None
         self.cond_prob = None
 
@@ -40,11 +45,14 @@ class MultinomialNaiveBayes:
         # number of documents
         n_docs = len(documents)
 
+        self.targets = set(targets)
+
         # priors of each target class
         # a vector of size: number of target classes
-        self.prior = np.zeros((len(set(targets))))
+        self.prior = np.zeros((len(self.targets)))
 
-        for target in set(targets):
+        self.cond_prob = np.zeros((len(self.vocabulary), len(self.targets)))
+        for target in self.targets:
             print(f'[DEBUG] - Counting documents in class {target}...')
             res = self.count_docs_in_class(documents, targets, target)
             n_docs_c = res[0]  # number of documents in target class
@@ -59,17 +67,41 @@ class MultinomialNaiveBayes:
             print(f'[DEBUG] - Calculating term frequencies of terms occurring in training documents of class {target}...')
             freq_t_c = self.term_frequency(docs_c)
 
-            # sum of term frequencies of terms in target class
-            sum_freq = 0
-            for term in freq_t_c:
-                sum_freq += term + 1
+            sum_freq = np.sum(freq_t_c) + freq_t_c.shape[0]
 
             # conditional probabilities of each term in target class
             # P(t|c) = (tf(t,c) + 1) / sum_t'(tf(c,t') + 1)
             # a matrix of size: number of vocabulary terms * number of target classes
             print(f'[DEBUG] - Calculating conditional probabilities of terms occurring in training documents of class {target}...')
-            self.cond_prob = np.zeros((len(self.vocabulary), len(set(targets))))
             self.cond_prob[:, target] = (freq_t_c + 1)/sum_freq
+
+    def predict(self, documents):
+        """ Classifies the given documents.
+
+        Args:
+            documents:
+                A list of documents as strings.
+
+        Returns:
+            A list with the target class of each document.
+        """
+        targets = []
+
+        for document in documents:
+            terms = extract_vocabulary([document])
+
+            score = np.zeros((len(self.targets)))
+            for target in self.targets:
+                score[target] = math.log(self.prior[target], 2)
+
+                for term in terms:  # if the terms that are not needed can be skipped then play with sets (intersection)
+                    if term in self.vocabulary:
+                        term_index = self.vocabulary.index(term)
+                        score[target] = score[target] + math.log(self.cond_prob[term_index][target], 2)
+
+            targets.append(np.argmax(score))
+
+        return targets
 
     def count_docs_in_class(self, documents, targets, target):
         """ Counts documents in specified target class.

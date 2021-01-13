@@ -65,16 +65,20 @@ print(f'[INFO] - Total training data files {len(train_data)} and target classes 
 
 # 10% of training data will go to developer data set
 print(f'[INFO] - Splitting training data into training data and developer data (10% of training data)')
-res = split_data(train_data, train_target, 0.95)
+res = split_data(train_data, train_target, 0.98)
 train_data = res[0]
 train_target = res[2]
 print(f'[INFO] - Total training data files {len(train_data)} and target classes {len(train_target)}')
 dev_data = res[1]
 dev_target = res[3]
 print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
-print()
 
 nb = MultinomialNaiveBayes()
 
-print(f'[INFO] - Fitting Multinomial Naive Bayes classifier')
+print()
+print(f'[INFO] - Fitting Multinomial Naive Bayes classifier...')
 nb.fit(train_data, train_target)
+
+print()
+print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier...')
+nb_targets = nb.predict(dev_data)
