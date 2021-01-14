@@ -2,7 +2,8 @@ import math
 
 import numpy as np
 
-from dochandler import extract_vocabulary
+from analysis import extract_vocabulary
+from analysis import analyze
 
 
 class MultinomialNaiveBayes:
@@ -89,15 +90,16 @@ class MultinomialNaiveBayes:
 
         for document in documents:
             terms = extract_vocabulary([document])
+            # keep terms that are in training vocabulary only
+            terms.intersection_update(self.vocabulary)
 
             score = np.zeros((len(self.targets)))
             for target in self.targets:
                 score[target] = math.log(self.prior[target], 2)
 
-                for term in terms:  # if the terms that are not needed can be skipped then play with sets (intersection)
-                    if term in self.vocabulary:
-                        term_index = self.vocabulary.index(term)
-                        score[target] = score[target] + math.log(self.cond_prob[term_index][target], 2)
+                for term in terms:
+                    term_index = self.vocabulary.index(term)
+                    score[target] = score[target] + math.log(self.cond_prob[term_index][target], 2)
 
             targets.append(np.argmax(score))
 
@@ -141,7 +143,7 @@ class MultinomialNaiveBayes:
         freq_t_c = np.zeros(len(self.vocabulary))
 
         for document in documents:
-            tokens = document.split()
+            tokens = analyze(document)
             for token in tokens:
                 if token in self.vocabulary:
                     term_index = self.vocabulary.index(token)
