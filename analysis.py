@@ -8,7 +8,7 @@ from nltk.stem import PorterStemmer
 
 
 def extract_vocabulary(documents):
-    """ Extracts vocabulary from given set of documents, removes duplicates and stopwords.
+    """ Extracts vocabulary from given set of documents.
 
     Args:
         documents:
