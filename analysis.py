@@ -47,15 +47,15 @@ def analyze(document):
     tokens = set(tokenizer.tokenize(document))
 
     # remove stopwords
-    # stop_words = set(stopwords.words('english'))
-    # tokens.difference_update(stop_words)
+    stop_words = set(stopwords.words('english'))
+    tokens.difference_update(stop_words)
 
     # stemming words
-    # stemmer = PorterStemmer()
-    #
-    # stem_tokens = set()
-    # for token in tokens:
-    #     stem_tokens.add(stemmer.stem(token))
+    stemmer = PorterStemmer()
+
+    stem_tokens = set()
+    for token in tokens:
+        stem_tokens.add(stemmer.stem(token))
 
     return tokens
 
