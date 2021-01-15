@@ -1,44 +1,75 @@
 from nltk.corpus import stopwords
+from nltk.tokenize import RegexpTokenizer
+from nltk.stem import PorterStemmer
 
-
-# TODO:remove # before sending assignment
-import nltk
-
-# nltk.download(all)
+# TODO: remove comments before sending assignment
+# import nltk
+# nltk.download('stopwords')
 
 
 def extract_vocabulary(documents):
-    """ Extracts vocabulary from given set of documents, removes duplicates and stopwords
-
+    """ Extracts vocabulary from given set of documents.
     Args:
         documents:
-            A list of documents as strings
-
+            A list of documents as strings.
     Returns:
-        The vocabulary set
+        The vocabulary set.
     """
-    vocab = set()
+    vocabulary = set()
 
     for document in documents:
-        tokens = document_pre_processing(document)
-        vocab.update(tokens)
+        tokens = analyze(document)
+        vocabulary.update(tokens)
 
-    return vocab
+    return vocabulary
 
 
-def create_vector(document, vocab):
-    """
-
+def analyze(document):
+    """ Analyzes a document.
+    The document is transformed to lower case and tokenized.
+    Then punctuation and stopwords are removed. Also, stemming is used.
     Args:
         document:
-        vocab:
-
+            A document as a string.
     Returns:
+        A set of extracted tokens from the document.
+    """
+    # document to lower case
+    document = document.lower()
 
+    # tokenize document and keep only alphanumeric characters
+    tokenizer = RegexpTokenizer('[a-zA-Z0-9]+')
+    tokens = set(tokenizer.tokenize(document))
+
+    # remove stopwords
+    # stop_words = set(stopwords.words('english'))
+    # tokens.difference_update(stop_words)
+
+    # stemming words
+    # stemmer = PorterStemmer()
+    #
+    # stem_tokens = set()
+    # for token in tokens:
+    #     stem_tokens.add(stemmer.stem(token))
+
+    return tokens
+
+
+def create_vector(document, vocabulary):
+    """ Creates a vector of attributes for a document.
+    The vector is of vocabulary size and each position is 1 if the document term is in vocabulary, otherwise 0.
+    Args:
+        document:
+            A document as a string.
+        vocabulary:
+            A set of terms from documents of training collection.
+    Returns:
+        The document vector.
     """
     vector = []
-    tokens = document_pre_processing(document)
-    for word in vocab:
+    tokens = analyze(document)
+
+    for word in vocabulary:
         if word in tokens:
             vector.append(1)
         else:
@@ -46,23 +77,23 @@ def create_vector(document, vocab):
     return vector
 
 
-def document_pre_processing(document):
+def vectorizing(documents, vocab):
     """
 
     Args:
-        document:
+        documents:
+        vocab:
 
     Returns:
 
     """
 
-    # document.translate(str.maketrans(", ", string.punctuation))
-    document = document.lower()
+    vector = []
 
-    tokenizer = nltk.RegexpTokenizer(r"\w+")
-    tokens = set(tokenizer.tokenize(document))
+    for document in documents:
+        vector.append(create_vector(document, vocab))
 
-    stop_words = set(stopwords.words('english'))
-    tokens.difference_update(stop_words)
+    return vector
 
-    return tokens
+
+

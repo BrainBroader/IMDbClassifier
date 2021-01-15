@@ -1,8 +1,11 @@
 import os
 import sys
 
+
 import sklearn.model_selection
-from dochandler import extract_vocabulary, create_vector, document_pre_processing
+
+from RandomForest.DecisionTree import DecisionTree
+from dochandler import extract_vocabulary, vectorizing
 
 
 def read_data(path):
@@ -72,5 +75,13 @@ dev_data = res[1]
 dev_target = res[3]
 print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
 
+vocab = extract_vocabulary(dev_data)
 
+vec = vectorizing(dev_data, vocab)
 
+print(len(vocab))
+# print(len(vec[0]))
+ds = DecisionTree(vec, vocab, dev_target, 2)
+
+ds.create_tree()
+ds.print_tree()
