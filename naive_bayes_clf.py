@@ -21,8 +21,9 @@ class MultinomialNaiveBayes:
             where Nc is the number of documents in class c and N is the total number of documents.
         cond_prob:
             Conditional probability of term tk occurring in a document of class c and is given by equation
-                P(t|c) = (tf(t,c) + 1) / sum_t'(tf(c,t') + 1)
-            where tf(t,c) is the term frequency of term t in training documents of class c.
+                P(t|c) = (idf(t,c) + 1) / sum_t'(idf(t',c) + 1)
+            where:
+                idf(t,c) is the inverse document frequency of term t in training documents of class c.
         tokenized_docs:
             A vector of lists with tokens of each training document.
         n_docs:
@@ -75,18 +76,18 @@ class MultinomialNaiveBayes:
             print(f'[DEBUG] - Counting prior probability of class {target}...')
             self.prior[target] = self.n_docs_c[target]/self.n_docs
 
-            # term frequencies of vocabulary terms in documents of target class
+            # idf of vocabulary terms of documents in target class
             # a vector of size: number of vocabulary terms
             print(f'[DEBUG] - Calculating term frequencies of terms occurring in training documents of class {target}...')
-            freq_t_c = self.term_frequency(self.docs_c[target])
+            idf_t_c = self.idf(self.docs_c[target], target)
 
-            sum_freq = np.sum(freq_t_c) + freq_t_c.shape[0]
+            sum_freq = np.sum(idf_t_c) + idf_t_c.shape[0]
 
             # conditional probabilities of each term in target class
-            # P(t|c) = (tf(t,c) + 1) / sum_t'(tf(c,t') + 1)
+            # P(t|c) = (idf(t,c) + 1) / sum_t'(idf(t',c) + 1)
             # a matrix of size: number of vocabulary terms * number of target classes
             print(f'[DEBUG] - Calculating conditional probabilities of terms occurring in training documents of class {target}...')
-            self.cond_prob[:, target] = (freq_t_c + 1)/sum_freq
+            self.cond_prob[:, target] = (idf_t_c + 1)/sum_freq
 
     def predict(self, documents):
         """ Classifies the given documents.
@@ -224,23 +225,34 @@ class MultinomialNaiveBayes:
 
         return counter, docs
 
-    def term_frequency(self, documents):
-        """ Finds the term frequencies of the vocabulary terms occurring in the given set of documents.
+    def idf(self, documents, target):
+        """ Finds the inverse document frequencies of the vocabulary terms occurring in the given set of documents.
+
+        The equation for idf(t,c) is:
+            idf(t,c) = log(n_c/ (1 + df(t,c)))
+        where:
+            idf(t,c) if the inverse document frequency of term t in documents of target class c,
+            n_c is the number of documents in target class c,
+            df(t,c) is the document frequency of term t in target class c,
+        and we add 1 to the denominator to avoid zero division.
 
         Args:
             documents:
                 A list of documents as strings.
 
         Returns:
-            A np.array with the term frequencies.
+            A np.array with the inverse document frequencies.
             The array if a vector with size: the number of vocabulary terms
         """
-        freq_t_c = np.zeros(len(self.vocabulary))
+        idf_t_c = np.zeros(len(self.vocabulary))
 
         for index in documents:
             tokens = self.tokenized_docs[index]
             for token in tokens:
                 if token in self.vocabulary:
                     term_index = self.vocabulary.index(token)
-                    freq_t_c[term_index] += 1
-        return freq_t_c
+                    idf_t_c[term_index] += 1
+
+        idf_t_c = np.log(self.n_docs_c[target] / (idf_t_c + 1))
+
+        return idf_t_c
