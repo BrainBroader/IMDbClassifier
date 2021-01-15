@@ -57,7 +57,7 @@ def analyze(document):
     for token in tokens:
         stem_tokens.add(stemmer.stem(token))
 
-    return tokens
+    return stem_tokens
 
 
 def create_vector(document, vocabulary):
