@@ -94,6 +94,3 @@ def vectorizing(documents, vocab):
         vector.append(create_vector(document, vocab))
 
     return vector
-
-
-

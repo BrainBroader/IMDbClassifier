@@ -16,6 +16,17 @@ class DecisionTree:
         self.best_split = None
 
     def create_tree(self):
+
+        """
+        Creates a Decision Tree. Starting with a shuffled dataset given in RandomForest class. The algorithm's first
+        step is to find the best split attribute (the attribute with the biggest information gain), then splits the
+        dataset in 2 smaller datasets, deletes the attribute from the vocabulary list and creates 2 DecisionTree
+        instances (one left and one right node). Then uses recursion until the node is a leaf or we have reached max
+        depth.
+
+        Returns:
+
+        """
         if len(self.data) == 0:
             self.is_leaf = True
             return self.cl
@@ -32,12 +43,12 @@ class DecisionTree:
             if self.depth < self.max_depth:
 
                 self.best_split = self.choose_attribute()
-                data_left, c_left, data_right, c_right = self.create_table(self.best_split)
+                data_left, c_left, data_right, c_right = self.create_table()
 
                 self.vocab.pop(self.best_split)
                 # print(self.best_split)
-                # print("left",data_left, "c_left", c_left)
-                # print("right", data_right, "c_right", c_right )
+                print("left", data_left, "c_left", c_left)
+                print("right", data_right, "c_right", c_right)
                 self.left = DecisionTree(data_left, self.vocab, c_left, self.max_depth, self.depth + 1, 1)
                 self.right = DecisionTree(data_right, self.vocab, c_right, self.max_depth, self.depth + 1, 0)
 
@@ -47,24 +58,44 @@ class DecisionTree:
             else:
                 self.is_leaf = True
 
-    def create_table(self, best_split):
+    def create_table(self):
+
+        """
+        Splits the dataset and the class list in two smaller datasets and lists. Also deletes the best attribute
+        column, so that cannot be used again.
+
+        Returns:
+            data_left: Left's node dataset
+            c_left: Left's dataset class list
+            data_right: Right's node dataset
+            c_left: Right's dataset class list
+
+        """
 
         data_left = []
         c_left = []
         data_right = []
         c_right = []
         for txt in range(len(self.data)):
-            if self.data[txt][best_split]:
+            if self.data[txt][self.best_split]:
                 data_left.append(self.data[txt])
                 c_left.append(self.c[txt])
             else:
                 data_right.append(self.data[txt])
                 c_right.append(self.c[txt])
-        data_left = np.delete(data_left, best_split, axis=1)
-        data_right = np.delete(data_right, best_split, axis=1)
+        data_left = np.delete(data_left, self.best_split, axis=1)
+        data_right = np.delete(data_right, self.best_split, axis=1)
         return data_left, c_left, data_right, c_right
 
     def choose_attribute(self):
+
+        """
+        Finds the attribute with the maximum information gain.
+
+        Returns:
+            pos: the position of this attribute
+
+        """
         maximum = 0
         pos = 0
 
@@ -76,11 +107,28 @@ class DecisionTree:
         return pos
 
     def entropy(self):
+
+        """
+        Calculates H(c) entropy
+
+        Returns: value of H(c)
+
+        """
         c1 = np.count_nonzero(self.c)
         c0 = len(self.c) - c1
         return self.calculate_entropy(c1 / len(self.c), c0 / len(self.c))
 
     def information_gain(self, y):
+
+        """
+        Calculates information gain value of one column.
+
+        Args:
+            y: value of the column
+
+        Returns: the information gain value
+
+        """
         x1, x0, x1c1, x1c0, x0c1, x0c0 = self.count_values(y)
         if x1 and x0:
             px1c1 = x1c1 / x1
@@ -96,6 +144,22 @@ class DecisionTree:
             return 0
 
     def count_values(self, y):
+
+        """
+        Calculates the number of 1 and 0 and also the class where value is 1 or 0 of one column
+
+        Args:
+            y: value of the column
+
+        Returns:
+            x1: number of 1
+            x0: number of 0
+            x1c1: number of  class = 1 where x1
+            x1c0: number of  class = 0 where x1
+            x0c1: number of  class = 1 where x0
+            x0c0: number of  class = 0 where x0
+
+        """
         x1, x0, x1c1, x1c0, x0c1, x0c0 = 0, 0, 0, 0, 0, 0
 
         for txt in range(len(self.data)):
@@ -121,6 +185,14 @@ class DecisionTree:
             self.right.print_tree()
 
     def predict_class(self, document):
+        """
+        Predicts the class of a given document by running a decision Tree
+        Args:
+            document: a given document
+
+        Returns: the class of the document
+
+        """
 
         if self.is_leaf:
             return self.cl
@@ -132,4 +204,13 @@ class DecisionTree:
 
     @staticmethod
     def calculate_entropy(p0, p1):
+        """
+        Calculates the entropy of two possibilities
+        Args:
+            p0: possibility of 0
+            p1: possibility of 1
+
+        Returns: value of entropy
+
+        """
         return - (p1 * np.log2(1 + p1) + p0 * np.log2(1 + p0))
