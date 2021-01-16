@@ -3,38 +3,49 @@ import numpy as np
 
 class DecisionTree:
 
-    def __init__(self, data, vocab, c, max_depth, depth=0):
+    def __init__(self, data, vocab, c, max_depth, depth=0, cl=0):
         self.data = data
         self.vocab = list(vocab)
         self.c = c
         self.max_depth = max_depth
         self.depth = depth
+        self.is_leaf = False
+        self.cl = cl
         self.left = None
         self.right = None
         self.best_split = None
 
     def create_tree(self):
         if len(self.data) == 0:
-            return 1
+            self.is_leaf = True
+            return self.cl
         elif all(x == self.c[0] for x in self.c):
+            self.is_leaf = True
             return self.c[0]
         elif len(self.vocab) == 0:
+            self.is_leaf = True
             if np.count_nonzero(self.c) >= len(self.c) / 2:
                 return 1
             else:
                 return 0
-        elif self.depth <= self.max_depth:
-            self.depth += 1
-            self.best_split = self.choose_attribute()
-            data_left, c_left, data_right, c_right = self.create_table(self.best_split)
+        else:
+            if self.depth < self.max_depth:
 
-            self.vocab.pop(self.best_split)
+                self.best_split = self.choose_attribute()
+                data_left, c_left, data_right, c_right = self.create_table(self.best_split)
 
-            self.left = DecisionTree(data_left, self.vocab, c_left, self.max_depth, self.depth)
-            self.right = DecisionTree(data_right, self.vocab, c_right, self.max_depth, self.depth)
+                self.vocab.pop(self.best_split)
+                # print(self.best_split)
+                # print("left",data_left, "c_left", c_left)
+                # print("right", data_right, "c_right", c_right )
+                self.left = DecisionTree(data_left, self.vocab, c_left, self.max_depth, self.depth + 1, 1)
+                self.right = DecisionTree(data_right, self.vocab, c_right, self.max_depth, self.depth + 1, 0)
 
-            self.left.create_tree()
-            self.right.create_tree()
+                self.left.create_tree()
+                self.right.create_tree()
+
+            else:
+                self.is_leaf = True
 
     def create_table(self, best_split):
 
@@ -103,11 +114,21 @@ class DecisionTree:
         return x1, x0, x1c1, x1c0, x0c1, x0c0
 
     def print_tree(self):
+        print(self.depth, self.is_leaf)
         if self.left:
             self.left.print_tree()
-        print(self.best_split)
         if self.right:
             self.right.print_tree()
+
+    def predict_class(self, document):
+
+        if self.is_leaf:
+            return self.cl
+        else:
+            if document[self.best_split]:
+                self.left.predict_class(document)
+            else:
+                self.right.predict_class(document)
 
     @staticmethod
     def calculate_entropy(p0, p1):
