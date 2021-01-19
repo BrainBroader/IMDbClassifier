@@ -58,27 +58,28 @@ class MultinomialNaiveBayes:
             k:
                 Number of features to be used, as a float in range (0, 1] (ex. 0.1 means 10% of features)
         """
-        print(f'[DEBUG] - Extracting vocabulary...')
-        self.vocabulary = list(extract_vocabulary(documents))
-
-        print(f'[DEBUG] - Selecting features...')
-        self.vocabulary = self.feature_selection(documents, targets, self.vocabulary, k)
-
         self.targets = set(targets)
+        self.n_docs = len(documents)
+        self.n_docs_c = [0] * len(self.targets)
+        self.docs_c = [[]] * len(self.targets)
+        for target in self.targets:
+            res = self.count_docs_in_class(documents, targets, target)
+            self.n_docs_c[target] = res[0]
+            self.docs_c[target] = res[1]
+
+        self.vocabulary = list(extract_vocabulary(documents))
+        self.vocabulary = self.feature_selection(documents, targets, self.vocabulary, k)
 
         # priors of each target class
         # a vector of size: number of target classes
         self.prior = np.zeros((len(self.targets)))
-
         self.cond_prob = np.zeros((len(self.vocabulary), len(self.targets)))
         for target in self.targets:
             # compute prior for target class
-            print(f'[DEBUG] - Counting prior probability of class {target}...')
             self.prior[target] = self.n_docs_c[target]/self.n_docs
 
             # idf of vocabulary terms of documents in target class
             # a vector of size: number of vocabulary terms
-            print(f'[DEBUG] - Calculating term frequencies of terms occurring in training documents of class {target}...')
             idf_t_c = self.idf(self.docs_c[target], target)
 
             sum_freq = np.sum(idf_t_c) + idf_t_c.shape[0]
@@ -86,7 +87,6 @@ class MultinomialNaiveBayes:
             # conditional probabilities of each term in target class
             # P(t|c) = (idf(t,c) + 1) / sum_t'(idf(t',c) + 1)
             # a matrix of size: number of vocabulary terms * number of target classes
-            print(f'[DEBUG] - Calculating conditional probabilities of terms occurring in training documents of class {target}...')
             self.cond_prob[:, target] = (idf_t_c + 1)/sum_freq
 
     def predict(self, documents):
@@ -135,26 +135,19 @@ class MultinomialNaiveBayes:
             A list with the top k features.
         """
         features = dict()
-
         k = int(math.floor(len(vocabulary) * k))
-
-        self.n_docs = len(documents)
 
         self.tokenized_docs = [None] * self.n_docs
 
-        self.n_docs_c = [0] * len(set(targets))
-        self.docs_c = [None] * len(set(targets))
-        for target in set(targets):
-            res = self.count_docs_in_class(documents, targets, target)
-            self.n_docs_c[target] = res[0]
-            self.docs_c[target] = res[1]
+        class_entropy = 0
+        for target in self.targets:
+            class_entropy -= (self.n_docs_c[target]/self.n_docs) * math.log2(self.n_docs_c[target]/self.n_docs)
 
-        # compute the utility of each term in vocabulary
         for term in vocabulary:
             utility = self.mutual_information(documents, targets, term)
-            features[term] = utility
+            features[term] = class_entropy - utility
 
-        return pq.nlargest(k, features)
+        return pq.nlargest(k, features, key=features.get)
 
     def mutual_information(self, documents, targets, term):
         """ Computes mutual information for a given term.
@@ -194,7 +187,7 @@ class MultinomialNaiveBayes:
         for row in range(n_docs_t_c.shape[0]):
             for col in range(n_docs_t_c.shape[1]):
                 try:
-                    mi += (n_docs_t_c[row][col] / self.n_docs) * math.log((self.n_docs * n_docs_t_c[row][col]) / (self.n_docs_c[col] * self.n_docs_c[col]), 2)
+                    mi += (n_docs_t_c[row][col] / self.n_docs) * math.log2((self.n_docs * n_docs_t_c[row][col]) / (self.n_docs_c[row] * self.n_docs_c[col]))
                 except ValueError:
                     # when x in log(x) is zero, add 0 to mutual information
                     mi += 0
@@ -239,6 +232,8 @@ class MultinomialNaiveBayes:
         Args:
             documents:
                 A list of documents as strings.
+            target:
+                The target class.
 
         Returns:
             A np.array with the inverse document frequencies.
@@ -253,6 +248,6 @@ class MultinomialNaiveBayes:
                     term_index = self.vocabulary.index(token)
                     idf_t_c[term_index] += 1
 
-        idf_t_c = np.log(self.n_docs_c[target] / (idf_t_c + 1))
+        idf_t_c = np.log2(self.n_docs_c[target] / (idf_t_c + 1))
 
         return idf_t_c
