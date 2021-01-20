@@ -21,9 +21,9 @@ class MultinomialNaiveBayes:
             where Nc is the number of documents in class c and N is the total number of documents.
         cond_prob:
             Conditional probability of term tk occurring in a document of class c and is given by equation
-                P(t|c) = (idf(t,c) + 1) / sum_t'(idf(t',c) + 1)
+                P(t|c) = (df(t,c) + 1) / sum_t'(df(t',c) + 1)
             where:
-                idf(t,c) is the inverse document frequency of term t in training documents of class c.
+                df(t,c) is the document frequency of term t in training documents of class c.
         tokenized_docs:
             A vector of lists with tokens of each training document.
         n_docs:
@@ -78,16 +78,16 @@ class MultinomialNaiveBayes:
             # compute prior for target class
             self.prior[target] = self.n_docs_c[target]/self.n_docs
 
-            # idf of vocabulary terms of documents in target class
+            # df of vocabulary terms of documents in target class
             # a vector of size: number of vocabulary terms
-            idf_t_c = self.idf(self.docs_c[target], target)
+            df_t_c = self.df(self.docs_c[target])
 
-            sum_freq = np.sum(idf_t_c) + idf_t_c.shape[0]
+            sum_freq = np.sum(df_t_c) + df_t_c.shape[0]
 
             # conditional probabilities of each term in target class
             # P(t|c) = (idf(t,c) + 1) / sum_t'(idf(t',c) + 1)
             # a matrix of size: number of vocabulary terms * number of target classes
-            self.cond_prob[:, target] = (idf_t_c + 1)/sum_freq
+            self.cond_prob[:, target] = (df_t_c + 1)/sum_freq
 
     def predict(self, documents):
         """ Classifies the given documents.
@@ -100,23 +100,24 @@ class MultinomialNaiveBayes:
             A list with the target class of each document.
         """
         targets = []
+        probabilities = np.zeros((len(documents), len(self.targets)))
 
-        for document in documents:
-            terms = extract_vocabulary([document])
+        for index_doc in range(len(documents)):
+            terms = extract_vocabulary([documents[index_doc]])
             # keep terms that are in training vocabulary only
             terms.intersection_update(self.vocabulary)
 
-            score = np.zeros((len(self.targets)))
             for target in self.targets:
-                score[target] = math.log(self.prior[target], 2)
+                score = math.log2(self.prior[target])
 
                 for term in terms:
                     term_index = self.vocabulary.index(term)
-                    score[target] = score[target] + math.log(self.cond_prob[term_index][target], 2)
+                    score = score + math.log2(self.cond_prob[term_index][target])
+                    probabilities[index_doc, target] = score
 
-            targets.append(np.argmax(score))
+            targets.append(np.argmax(probabilities[index_doc][:]))
 
-        return targets
+        return targets, probabilities
 
     def feature_selection(self, documents, targets, vocabulary, k):
         """ Selects top k featured from vocabulary using mutual information.
@@ -218,36 +219,24 @@ class MultinomialNaiveBayes:
 
         return counter, docs
 
-    def idf(self, documents, target):
-        """ Finds the inverse document frequencies of the vocabulary terms occurring in the given set of documents.
-
-        The equation for idf(t,c) is:
-            idf(t,c) = log(n_c/ (1 + df(t,c)))
-        where:
-            idf(t,c) if the inverse document frequency of term t in documents of target class c,
-            n_c is the number of documents in target class c,
-            df(t,c) is the document frequency of term t in target class c,
-        and we add 1 to the denominator to avoid zero division.
+    def df(self, documents):
+        """ Finds inverse document frequencies of the vocabulary terms occurring in the given set of documents.
 
         Args:
             documents:
                 A list of documents as strings.
-            target:
-                The target class.
 
         Returns:
-            A np.array with the inverse document frequencies.
-            The array if a vector with size: the number of vocabulary terms
+            A np.array with the document frequencies.
+            The array as a vector with size: the number of vocabulary terms
         """
-        idf_t_c = np.zeros(len(self.vocabulary))
+        df_t_c = np.zeros(len(self.vocabulary))
 
         for index in documents:
             tokens = self.tokenized_docs[index]
             for token in tokens:
                 if token in self.vocabulary:
                     term_index = self.vocabulary.index(token)
-                    idf_t_c[term_index] += 1
+                    df_t_c[term_index] += 1
 
-        idf_t_c = np.log2(self.n_docs_c[target] / (idf_t_c + 1))
-
-        return idf_t_c
+        return df_t_c
