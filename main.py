@@ -1,7 +1,8 @@
 import os
 import sys
 
-import sklearn.model_selection
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 from naive_bayes_clf import MultinomialNaiveBayes
 
@@ -33,52 +34,72 @@ def read_data(path):
     return data, target
 
 
-def split_data(data, target, size):
-    """ Splits training set in two pieces; a training set and a developer set.
+def main():
+    train_path = sys.argv[1] + '\\train\\'
+    test_path = sys.argv[1] + '\\test\\'
 
-    The training set should constitute of the data files and the target classes of each data file.
+    # load training data
+    print(f'[INFO] - Loading training data from {train_path}')
+    res = read_data(train_path)
+    train_data = res[0]
+    train_target = res[1]
+    print(f'[INFO] - Total train data: {len(train_data)}')
 
-    Args:
-        data:
-            A list with the contents of each data file.
-        target:
-            A list of the target classes of each data file.
-        size:
-            The size of the developer set as a float (ex 0.1 means 10% of the training set)
+    print(f'[INFO] - Loading testing data from {test_path}')
+    res = read_data(test_path)
+    test_data = res[0]
+    test_target = res[1]
+    print(f'[INFO] - Total test data: {len(test_data)}')
 
-    Returns:
-        The training data, the developer data, the target classes for training data and the target classes for developer
-        data.
-    """
-    return sklearn.model_selection.train_test_split(data, target, test_size=size)
+    # 10% of training data will go to developer data set
+    print(f'[INFO] - Splitting training data into training data and developer data (10% of training data)')
+    res = train_test_split(train_data, train_target, test_size=0.1)
+    train_data = res[0]
+    train_target = res[2]
+    print(f'[INFO] - Total training data after split {len(train_data)}')
+    dev_data = res[1]
+    dev_target = res[3]
+    print(f'[INFO] - Total developer data {len(dev_data)}')
+
+    nb = MultinomialNaiveBayes()
+
+    counter = 1
+    for train_size in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+        print(f'\n[INFO] - Iteration No.{counter} (using {int(train_size*100)}% of train data).')
+
+        if train_size != 1.0:
+            res = train_test_split(train_data, train_target, train_size=train_size, shuffle=False)
+            fold_data = res[0]
+            fold_target = res[2]
+        else:
+            fold_data = train_data
+            fold_target = train_target
+
+        feature_size = 0.007
+
+        print(f'[INFO] - Fitting Multinomial Naive Bayes classifier using {feature_size*100:.1f}% of features...')
+        nb.fit(fold_data, fold_target, feature_size)
+
+        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using train data...')
+        res = nb.predict(fold_data)
+        nb_targets = res[0]
+        accuracy = accuracy_score(fold_target, nb_targets)
+        print(f'[INFO] - Accuracy: {accuracy}')
+
+        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using developer data...')
+        res = nb.predict(dev_data)
+        nb_targets = res[0]
+        accuracy = accuracy_score(dev_target, nb_targets)
+        print(f'[INFO] - Accuracy: {accuracy}')
+
+        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using test data...')
+        res = nb.predict(test_data)
+        nb_targets = res[0]
+        accuracy = accuracy_score(test_target, nb_targets)
+        print(f'[INFO] - Accuracy: {accuracy}')
+
+        counter += 1
 
 
-train_path = sys.argv[1] + '\\train\\'
-test_data_path = sys.argv[1] + '\\test\\'
-
-# load training data
-print(f'[INFO] - Loading training data from {train_path}')
-res = read_data(train_path)
-train_data = res[0]
-train_target = res[1]
-print(f'[INFO] - Total training data files {len(train_data)} and target classes {len(train_target)}')
-
-# 10% of training data will go to developer data set
-print(f'[INFO] - Splitting training data into training data and developer data (10% of training data)')
-res = split_data(train_data, train_target, 0.98)
-train_data = res[0]
-train_target = res[2]
-print(f'[INFO] - Total training data files {len(train_data)} and target classes {len(train_target)}')
-dev_data = res[1]
-dev_target = res[3]
-print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
-
-nb = MultinomialNaiveBayes()
-
-print()
-print(f'[INFO] - Fitting Multinomial Naive Bayes classifier...')
-nb.fit(train_data, train_target)
-
-print()
-print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier...')
-nb_targets = nb.predict(dev_data)
+if __name__ == '__main__':
+    main()
