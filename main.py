@@ -1,10 +1,13 @@
 import os
 import sys
-
+import math
 
 import sklearn.model_selection
+from sklearn.metrics import accuracy_score
 
-from RandomForest.DecisionTree import DecisionTree
+from RandomForest.RandomForest import RandomForest
+from RandomForest.DecisionTree import Tree
+
 from dochandler import extract_vocabulary, vectorizing
 
 
@@ -75,13 +78,19 @@ dev_data = res[1]
 dev_target = res[3]
 print(f'[INFO] - Total developer data files {len(dev_data)} and target classes {len(dev_target)}')
 
-vocab = extract_vocabulary(dev_data)
+vocab = extract_vocabulary(train_data)
 
-vec = vectorizing(dev_data, vocab)
 
-print(len(vocab))
-# print(len(vec[0]))
-ds = DecisionTree(vec, vocab, dev_target, 2)
+vec = vectorizing(train_data, vocab)
 
-ds.create_tree()
-ds.print_tree()
+ds = RandomForest(10, math.inf)
+ds.fit(vec, train_target)
+
+predictions = []
+
+dev_vec = vectorizing(dev_data, vocab)
+for x in dev_vec:
+    predictions.append(ds.predict(x))
+print(predictions)
+
+print(accuracy_score(dev_target, predictions))

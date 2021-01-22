@@ -1,6 +1,8 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import PorterStemmer
+import math
+
 
 # TODO: remove comments before sending assignment
 # import nltk
@@ -10,18 +12,29 @@ from nltk.stem import PorterStemmer
 def extract_vocabulary(documents):
     """ Extracts vocabulary from given set of documents.
     Args:
+
         documents:
             A list of documents as strings.
     Returns:
         The vocabulary set.
     """
-    vocabulary = set()
+    vocabulary = dict()
 
     for document in documents:
         tokens = analyze(document)
-        vocabulary.update(tokens)
+        for token in tokens:
+            if token in vocabulary.keys():
+                vocabulary[token] = vocabulary.get(token) + 1
+            else:
+                vocabulary.update({token: 1})
 
-    return vocabulary
+    f_lst = {k: v for k, v in sorted(vocabulary.items(), key=lambda item: item[1], reverse=True)}
+    f = []
+    for i in f_lst.keys():
+        f.append(i)
+
+
+    return f[0: 200]
 
 
 def analyze(document):
@@ -42,17 +55,17 @@ def analyze(document):
     tokens = set(tokenizer.tokenize(document))
 
     # remove stopwords
-    # stop_words = set(stopwords.words('english'))
-    # tokens.difference_update(stop_words)
+    stop_words = set(stopwords.words('english'))
+    tokens.difference_update(stop_words)
 
     # stemming words
-    # stemmer = PorterStemmer()
-    #
-    # stem_tokens = set()
-    # for token in tokens:
-    #     stem_tokens.add(stemmer.stem(token))
+    stemmer = PorterStemmer()
 
-    return tokens
+    stem_tokens = set()
+    for token in tokens:
+        stem_tokens.add(stemmer.stem(token))
+
+    return stem_tokens
 
 
 def create_vector(document, vocabulary):
@@ -72,6 +85,7 @@ def create_vector(document, vocabulary):
     for word in vocabulary:
         if word in tokens:
             vector.append(1)
+
         else:
             vector.append(0)
     return vector

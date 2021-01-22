@@ -1,20 +1,18 @@
 import numpy as np
-from DecisionTree import DecisionTree
+from RandomForest.DecisionTree import Tree
 
 
 class RandomForest:
 
-    def __init__(self, dataset, vocabulary, target, n_trees, max_depth=5):
+    def __init__(self, n_trees, max_depth=5, min_leaf=3):
 
-        np.random.seed(42)
-        self.dataset = dataset
-        self.vocabulary = list(vocabulary)
-        self.target = target
+        # np.random.seed(42)
         self.n_trees = n_trees
         self.max_depth = max_depth
+        self.min_leaf = min_leaf
         self.trees = []
 
-    def fit(self):
+    def fit(self, dataset, target):
 
         """
         Trains the model.
@@ -24,15 +22,16 @@ class RandomForest:
 
         """
         for tree in range(self.n_trees):
-            dataset = []
+            shuffled_dataset = []
             c = []
-            data = np.random.choice(len(self.dataset), replace=True, size=len(self.dataset))
+            data = np.random.choice(len(dataset), replace=True, size=len(dataset))
             for doc in data:
-                dataset.append(self.dataset[doc])
-                c.append(self.target[doc])
-            t = DecisionTree(dataset, self.vocabulary, c, self.max_depth)
-            t.create_tree()
-            self.trees.append(t)
+                shuffled_dataset.append(dataset[doc])
+                c.append(target[doc])
+            t = Tree(self.max_depth, self.min_leaf)
+            tree = t.create_tree(shuffled_dataset, c)
+            self.trees.append(tree)
+            print("///////////////////////////////")
 
     def predict(self, document):
 
@@ -46,10 +45,7 @@ class RandomForest:
             The class that had more "votes" for this document.
 
         """
-        predictions = []
-        for tree in self.trees:
-            predictions.append(tree.predict_class(document))
-        if np.count_nonzero(predictions) > self.n_trees/2:
-            return 1
-        else:
-            return 0
+        percents = np.mean([t.predict_class(document) for t in self.trees], axis=0)
+        return [1 if percents > 0.5 else 0]
+
+
