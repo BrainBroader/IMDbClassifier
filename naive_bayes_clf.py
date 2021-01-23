@@ -140,18 +140,13 @@ class MultinomialNaiveBayes:
 
         self.tokenized_docs = [None] * self.n_docs
 
-        class_entropy = 0
-        for target in self.targets:
-            class_entropy -= (self.n_docs_c[target]/self.n_docs) * math.log2(self.n_docs_c[target]/self.n_docs)
-
         for term in vocabulary:
-            utility = self.mutual_information(documents, targets, term)
-            features[term] = class_entropy - utility
+            features[term] = self.information_gain(documents, targets, term)
 
         return pq.nlargest(k, features, key=features.get)
 
-    def mutual_information(self, documents, targets, term):
-        """ Computes mutual information for a given term.
+    def information_gain(self, documents, targets, term):
+        """ Computes information gain for a given term.
 
         Args:
             documents:
@@ -161,8 +156,12 @@ class MultinomialNaiveBayes:
             term:
                 A term as a string.
         Returns:
-            The mutual information of the given term, as a float.
+            The information gain of the given term, as a float.
         """
+        class_entropy = 0
+        for target in self.targets:
+            class_entropy -= (self.n_docs_c[target] / self.n_docs) * math.log2(self.n_docs_c[target] / self.n_docs)
+
         # each row represents the times a term occurs (or doesn't occur)
         # each column represents the class of the document where the term occurs (or doesn't occur)
         n_docs_t_c = np.zeros((2, len(set(targets))))
@@ -184,16 +183,21 @@ class MultinomialNaiveBayes:
                 else:
                     n_docs_t_c[0][1] += 1
 
-        mi = 0
+        ig = 0
         for row in range(n_docs_t_c.shape[0]):
+            n_docs_t = np.sum(n_docs_t_c[row][:])
             for col in range(n_docs_t_c.shape[1]):
                 try:
-                    mi += (n_docs_t_c[row][col] / self.n_docs) * math.log2((self.n_docs * n_docs_t_c[row][col]) / (self.n_docs_c[row] * self.n_docs_c[col]))
+                    ig += (n_docs_t / self.n_docs) *\
+                          (n_docs_t_c[row][col] / self.n_docs_c[col]) *\
+                          math.log2(n_docs_t_c[row][col] / self.n_docs_c[col])
                 except ValueError:
                     # when x in log(x) is zero, add 0 to mutual information
-                    mi += 0
+                    ig += 0
 
-        return mi
+        ig = class_entropy - ig
+
+        return ig
 
     def count_docs_in_class(self, documents, targets, target):
         """ Counts documents in specified target class.
