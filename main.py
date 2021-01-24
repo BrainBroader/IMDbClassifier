@@ -105,8 +105,8 @@ def main():
         counter += 1
 
     learning_curves_plot = plt.figure(1)
-    plt.plot([0.1], accuracy_train, label='train')
-    plt.plot([0.1], accuracy_test, label='test')
+    plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], accuracy_train, label='train')
+    plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], accuracy_test, label='test')
     plt.title('Learning Curves (Multinomial Naive Bayes)')
     plt.legend(loc='lower right')
     plt.xlabel('Number of Train Data')
