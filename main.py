@@ -104,19 +104,22 @@ def main():
 
         counter += 1
 
-    plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], accuracy_train, label='train')
-    plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], accuracy_test, label='test')
+    learning_curves_plot = plt.figure(1)
+    plt.plot([0.1], accuracy_train, label='train')
+    plt.plot([0.1], accuracy_test, label='test')
     plt.title('Learning Curves (Multinomial Naive Bayes)')
     plt.legend(loc='lower right')
     plt.xlabel('Number of Train Data')
     plt.ylabel('Accuracy')
 
+    precision_recall_plot = plt.figure(2)
     average_precision, average_recall, thresholds = precision_recall(probabilities, test_target, 100)
     plt.step(average_recall, average_precision, where='post')
     plt.title('Precision-Recall Curve (Multinomial Naive Bayes)')
     plt.xlabel('Recall')
     plt.ylabel('Precision')
 
+    f1_plot = plt.figure(3)
     f1_score = f1(average_precision, average_recall)
     plt.plot(thresholds, f1_score)
     plt.title('F1 Curve (Multinomial Naive Bayes)')
