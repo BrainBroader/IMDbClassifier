@@ -68,7 +68,6 @@ def main():
 
     accuracy_train = []
     accuracy_test = []
-    probabilities = None
 
     counter = 1
     for train_size in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
@@ -92,10 +91,10 @@ def main():
         accuracy_train.append(accuracy_score)
         print(f'[INFO] - Accuracy: {accuracy_score}')
 
-        # print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using developer data...')
-        # nb_targets, _ = nb.predict(dev_data)
-        # accuracy_score = accuracy(dev_target, nb_targets)
-        # print(f'[INFO] - Accuracy: {accuracy_score}')
+        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using developer data...')
+        nb_targets, _ = nb.predict(dev_data)
+        accuracy_score = accuracy(dev_target, nb_targets)
+        print(f'[INFO] - Accuracy: {accuracy_score}')
 
         print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using test data...')
         nb_targets, probabilities = nb.predict(test_data)
@@ -107,24 +106,23 @@ def main():
 
     plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], accuracy_train, label='train')
     plt.plot([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], accuracy_test, label='test')
-    plt.title('Learning curves')
+    plt.title('Learning Curves (Multinomial Naive Bayes)')
     plt.legend(loc='lower right')
-    plt.xlabel('Number of training data')
+    plt.xlabel('Number of Train Data')
     plt.ylabel('Accuracy')
-    plt.show()
 
-    average_precision, average_recall, thresholds = precision_recall(probabilities, test_target)
-    plt.plot(average_recall, average_precision)
-    plt.title('Precision-Recall curve')
+    average_precision, average_recall, thresholds = precision_recall(probabilities, test_target, 100)
+    plt.step(average_recall, average_precision, where='post')
+    plt.title('Precision-Recall Curve (Multinomial Naive Bayes)')
     plt.xlabel('Recall')
     plt.ylabel('Precision')
-    plt.show()
 
     f1_score = f1(average_precision, average_recall)
     plt.plot(thresholds, f1_score)
-    plt.title('F1 curve')
+    plt.title('F1 Curve (Multinomial Naive Bayes)')
     plt.xlabel('Thresholds')
-    plt.ylabel('F1 score')
+    plt.ylabel('F1 Measure')
+
     plt.show()
 
 
