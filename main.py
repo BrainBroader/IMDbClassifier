@@ -113,7 +113,7 @@ def main():
     plt.ylabel('Accuracy')
 
     precision_recall_plot = plt.figure(2)
-    average_precision, average_recall, thresholds = precision_recall(probabilities, test_target, 100)
+    average_precision, average_recall, thresholds = precision_recall(probabilities, test_target, 10)
     plt.step(average_recall, average_precision, where='post')
     plt.title('Precision-Recall Curve (Multinomial Naive Bayes)')
     plt.xlabel('Recall')
