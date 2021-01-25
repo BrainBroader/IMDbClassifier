@@ -5,179 +5,162 @@ from RandomForest.TreeNode import TreeNode
 
 class Tree:
 
-    def __init__(self, max_depth, min_leaf):
+    def __init__(self, dataset, target, max_depth, min_leaf):
+        self.dataset = dataset
+        self.target = target
         self.max_depth = max_depth
         self.min_leaf = min_leaf
 
-    def create_tree(self, dataset, target, depth=0):
-        if len(dataset) == 0:
-            return None
-        if all(x == target[0] for x in target):
-            node = TreeNode(None, depth + 1, target[0], True)
+    def create_tree(self, dataset_index, vocabulary_index, m=0, depth=0):
+        if dataset_index.size <= self.min_leaf:
+            node = TreeNode(None, depth + 1, m, True)
             return node
-        elif len(dataset[0]) == 0 or depth >= self.max_depth-1:
-            if np.count_nonzero(target) > len(target)/2:
-                cl = 1
-            else:
-                cl = 0
-            node = TreeNode(None, depth + 1, cl, True)
+        if self.all_same(dataset_index):
+            node = TreeNode(None, depth + 1, self.target[dataset_index[0]], True)
+            return node
+        elif vocabulary_index.size == 2 or depth >= self.max_depth:
+            node = TreeNode(None, depth + 1, self.majority_value(dataset_index), True)
             return node
         else:
-            best_split = choose_attribute(dataset, target)
-            left_dataset, left_target, right_dataset, right_target = split(dataset, target, best_split)
-            if len(left_dataset) < self.min_leaf or len(right_dataset) < self.min_leaf:
-                if np.count_nonzero(target) > len(target) / 2:
-                    cl = 1
+            best_split = self.choose_attribute(dataset_index, vocabulary_index)
+            m = self.majority_value(dataset_index)
+            node = TreeNode(best_split, depth + 1, m)
+            for cl in range(2):
+                new_dataset = self.split(dataset_index, best_split, cl)
+                branch = self.create_tree(new_dataset, np.delete(vocabulary_index, best_split, axis=0), m, depth + 1)
+
+                if cl:
+                    node.left = branch
                 else:
-                    cl = 0
-                node = TreeNode(None, depth + 1, cl, True)
-            else:
-                node = TreeNode(best_split, depth + 1)
-                print("left", left_dataset, "c_left", left_target)
-                print("right", right_dataset, "c_right", right_target)
-                node.left = self.create_tree(left_dataset, left_target, depth + 1)
-                node.right = self.create_tree(right_dataset, right_target, depth + 1)
+                    node.right = branch
+
             return node
 
+    def all_same(self, dataset_index):
+        """
 
-def split(dataset, target, best_split):
-    """
-    Splits the dataset and the class list in two smaller datasets and lists. Also deletes the best attribute
-    column, so that cannot be used again.
+        Args:
+            dataset_index: A list that contains the index of our current dataset to the starting dataset.
 
-    Returns:
-        data_left: Left's node dataset
-        c_left: Left's dataset class list
-        data_right: Right's node dataset
-         c_left: Right's dataset class list
-    """
+        Returns: True if all currents dataset's targets have same value or false if they have not same value.
 
-    data_left = []
-    c_left = []
-    data_right = []
-    c_right = []
-    for txt in range(len(dataset)):
-        if dataset[txt][best_split]:
-            data_left.append(dataset[txt])
-            c_left.append(target[txt])
+        """
+        return all(self.target[x] == self.target[dataset_index[0]] for x in dataset_index)
+
+    def majority_value(self, dataset_index):
+        """
+
+        Args:
+            dataset_index: A list that contains the index of our current dataset to the starting dataset.
+
+        Returns: 1 if the majority of current's dataset targets are of class 1 or 0 if not.
+
+        """
+        if np.count_nonzero(self.target[dataset_index]) > dataset_index.size / 2:
+            return 1
         else:
-            data_right.append(dataset[txt])
-            c_right.append(target[txt])
-    if len(dataset) > 0:
-        data_left = np.delete(data_left, best_split, axis=1)
-        data_right = np.delete(data_right, best_split, axis=1)
-    return data_left, c_left, data_right, c_right
+            return 0
 
+    def information_gain(self, dataset_index, attr):
+        """ Computes information gain for a given term.
+        Args:
+            dataset_index: A list that contains the index of our current dataset to the starting dataset.
+            attr: The position of the term that we want to calculate information gain.
 
-def choose_attribute(dataset, target):
-    """
-    Finds the attribute with the maximum information gain.
+        Returns:
+            The information gain of the given term as a float.
+        """
+        target_count = np.zeros(2)
+        target_count[1] = np.count_nonzero(self.target[dataset_index])
+        target_count[0] = dataset_index.size - target_count[1]
 
-    Returns:
+        entropy = 0
+        for p in range(len(set(self.target))):
+            try:
+                entropy -= target_count[p] / dataset_index.size * math.log2(target_count[p] / dataset_index.size)
+            except ValueError:
+                # when x in log(x) is zero, add 0 to mutual information
+                entropy -= 0
 
-        pos: the position of this attribute
-    """
-    maximum = 0
-    pos = 0
+        count = self.count_values(dataset_index, attr)
 
-    for attr in range(len(dataset[0])):
-        ig = information_gain(dataset, target, attr)
-        if ig > maximum:
-            maximum = ig
-            pos = attr
-    return pos
+        ig = 0
+        for row in range(count.shape[0]):
+            n_docs_t = float(np.sum(count[row][:]))
+            for col in range(count.shape[1]):
+                try:
+                    ig += (n_docs_t / dataset_index.size) * \
+                          (-((count[row][col] / n_docs_t) * math.log2(count[row][col] / n_docs_t)))
+                except ValueError:
+                    # when x in log(x) is zero, add 0 to mutual information
+                    ig += 0
 
+        ig = entropy - ig
 
-def entropy(target):
-    """
-    Calculates H(c) entropy
+        return ig
 
-    Returns: value of H(c)
+    def split(self, dataset_index, best_split, cl):
+        """
+        Creates a new dataset with tuples which at best_split position have value cl.
 
-    """
-    c1 = np.count_nonzero(target)
-    c0 = len(target) - c1
-    return calculate_entropy(float(c1) / len(target), float(c0) / len(target))
+        Args:
+            dataset_index: A list that contains the index of our current dataset to the starting dataset.
+            best_split: The index of the attribute with the maximum information gain.
+            cl: The value tuples we want have at best split.
 
+        Returns: A new list that contains the index of our current dataset to the starting dataset.
 
-def information_gain(dataset, target, y):
-    """
-    Calculates information gain value of one column.
+        """
 
-    Args:
-        target:
-        dataset:
-        y: value of the column
+        data = []
+        for txt in dataset_index:
+            if self.dataset[txt][best_split] == cl:
+                data.append(txt)
+        dataset = np.array(data)
 
-    Returns: the information gain value
+        return dataset
 
-    """
-    x1, x0, x1c1, x1c0, x0c1, x0c0 = count_values(dataset, target, y)
-    if x1:
-        px1c1 = float(x1c1) / x1
-        px1c0 = float(x1c0) / x1
-    else:
-        px1c1 = 0
-        px1c0 = 0
-    if x0:
-        px0c1 = float(x0c1) / x0
-        px0c0 = float(x0c0) / x0
-    else:
-        px0c1 = 0
-        px0c0 = 0
-    px1 = float(x1) / len(dataset)
-    px0 = float(x0) / len(dataset)
-    ig = entropy(target) - (px1 * calculate_entropy(px1c1, px1c0) +
-                            px0 * calculate_entropy(px0c1, px0c0))
-    return ig
+    def count_values(self, dataset_index, attr):
+        """
+        Calculates the number of classes 0 and 1 where dataset's value at attr position is 1 and 0 .
 
+        Args:
+            dataset_index: A list that contains the index of our current dataset to the starting dataset.
+            attr: the dataset index on which we want to calculate the values.
 
-def count_values(dataset, target, y):
-    """
-    Calculates the number of 1 and 0 and also the class where value is 1 or 0 of one column
+        Returns: A 2*2 array that contains all sums.
 
-    Args:
-        target:
-        dataset:
-        y: value of the column
+        """
+        count = np.zeros((2, len(set(self.target))))
 
-    Returns:
-        x1: number of 1
-        x0: number of 0
-        x1c1: number of  class = 1 where x1
-        x1c0: number of  class = 0 where x1
-        x0c1: number of  class = 1 where x0
-        x0c0: number of  class = 0 where x0
-
-    """
-    x1, x0, x1c1, x1c0, x0c1, x0c0 = 0, 0, 0, 0, 0, 0
-
-    for txt in range(len(dataset)):
-        if dataset[txt][y]:
-            x1 += 1
-            if target[txt]:
-                x1c1 += 1
+        for txt in dataset_index:
+            if self.dataset[txt][attr]:
+                if self.target[txt]:
+                    count[1][1] += 1
+                else:
+                    count[1][0] += 1
             else:
-                x1c0 += 1
-        else:
-            x0 += 1
-            if target[txt]:
-                x0c1 += 1
-            else:
-                x0c0 += 1
-    return x1, x0, x1c1, x1c0, x0c1, x0c0
+                if self.target[txt]:
+                    count[0][1] += 1
+                else:
+                    count[0][0] += 1
 
+        return count
 
-def calculate_entropy(p0, p1):
-    """
-    Calculates the entropy of two possibilities
-    Args:
-        p0: possibility of 0
-        p1: possibility of 1
+    def choose_attribute(self, dataset_index, vocabulary_index):
+        """
+        Finds the attribute with the maximum information gain.
 
-    Returns: value of entropy
+        Returns:
 
-    """
-    return - (p1 * math.log2(1 + p1) + p0 * math.log2(1 + p0))
+            pos: the position of this attribute
+        """
+        maximum = 0
+        pos = 0
 
-
+        for attr in range(vocabulary_index.size):
+            ig = self.information_gain(dataset_index, vocabulary_index[attr])
+            if ig > maximum:
+                maximum = ig
+                pos = attr
+        return pos

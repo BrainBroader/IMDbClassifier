@@ -1,7 +1,6 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import PorterStemmer
-import math
 
 
 # TODO: remove comments before sending assignment
@@ -9,12 +8,12 @@ import math
 # nltk.download('stopwords')
 
 
-def extract_vocabulary(documents):
-    """ Extracts vocabulary from given set of documents.
+def extract_vocabulary(documents, n_features):
+    """ Extracts the n_features most frequents terms from given set of documents.
     Args:
 
-        documents:
-            A list of documents as strings.
+        n_features: number of features.
+        documents: A list of documents as strings.
     Returns:
         The vocabulary set.
     """
@@ -33,8 +32,7 @@ def extract_vocabulary(documents):
     for i in f_lst.keys():
         f.append(i)
 
-
-    return f[0: 200]
+    return f[0: n_features]
 
 
 def analyze(document):
@@ -95,10 +93,11 @@ def vectorizing(documents, vocab):
     """
 
     Args:
-        documents:
-        vocab:
+        documents: A group of given documents.
+        vocab: the vocabulary.
 
     Returns:
+        A 2 dim vector.
 
     """
 
