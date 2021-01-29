@@ -5,12 +5,13 @@ import sklearn.model_selection
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
-from metrics import accuracy, precision_recall, f1
+from metrics import precision_recall, f1, accuracy
 from RandomForest_clf.RandomForest import RandomForest
 from dochandler import extract_vocabulary
 
 
 def read_data(path):
+
     """ Reads the data files from aclImdb folder, and keeps the target class, negative or positive, of each data file.
 
     Args:
@@ -84,7 +85,7 @@ def main():
     dev_target = res[3]
     print(f'[INFO] - Total developer data {len(dev_data)}')
 
-    rf = RandomForest()
+    rf = RandomForest(100, 10)
 
     accuracy_train = []
     accuracy_test = []
@@ -103,21 +104,21 @@ def main():
 
         feature_size = 100
         vocabulary = extract_vocabulary(train_data, feature_size)
-        print(f'[INFO] - Fitting Multinomial Naive Bayes classifier using', feature_size, ' of features...')
+        print(f'[INFO] - Fitting Random forest classifier using', feature_size, ' features...')
         rf.fit(fold_data, fold_target, vocabulary)
 
-        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using train data...')
+        print(f'[INFO] - Predicting with Random Forest classifier using train data...')
         rf_targets, _ = rf.predict(fold_data, vocabulary)
         accuracy_score = accuracy(fold_target, rf_targets)
         accuracy_train.append(accuracy_score)
         print(f'[INFO] - Accuracy: {accuracy_score}')
 
-        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using developer data...')
+        print(f'[INFO] - Predicting with Random Forest classifier using developer data...')
         rf_targets, _ = rf.predict(dev_data, vocabulary)
         accuracy_score = accuracy(dev_target, rf_targets)
         print(f'[INFO] - Accuracy: {accuracy_score}')
 
-        print(f'[INFO] - Predicting with Multinomial Naive Bayes classifier using test data...')
+        print(f'[INFO] - Predicting with Random Forest classifier using test data...')
         rf_targets, probabilities = rf.predict(test_data, vocabulary)
         accuracy_score = accuracy(test_target, rf_targets)
         accuracy_test.append(accuracy_score)
@@ -133,20 +134,20 @@ def main():
     plt.xlabel('Number of Train Data')
     plt.ylabel('Accuracy')
 
-    # precision_recall_plot = plt.figure(2)
-    # average_precision, average_recall, thresholds = precision_recall(probabilities, test_target, 10)
-    # plt.step(average_recall, average_precision, where='post')
-    # plt.title('Precision-Recall Curve (Multinomial Naive Bayes)')
-    # plt.xlabel('Recall')
-    # plt.ylabel('Precision')
-    #
-    # f1_plot = plt.figure(3)
-    # f1_score = f1(average_precision, average_recall)
-    # plt.plot(thresholds, f1_score)
-    # plt.title('F1 Curve (Multinomial Naive Bayes)')
-    # plt.xlabel('Thresholds')
-    # plt.ylabel('F1 Measure')
-    #
+    precision_recall_plot = plt.figure(2)
+    average_precision, average_recall, thresholds = precision_recall(probabilities, test_target, 10)
+    plt.step(average_recall, average_precision, where='post')
+    plt.title('Precision-Recall Curve (Multinomial Naive Bayes)')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+
+    f1_plot = plt.figure(3)
+    f1_score = f1(average_precision, average_recall)
+    plt.plot(thresholds, f1_score)
+    plt.title('F1 Curve (Multinomial Naive Bayes)')
+    plt.xlabel('Thresholds')
+    plt.ylabel('F1 Measure')
+
     plt.show()
 
 

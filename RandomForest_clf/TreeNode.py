@@ -9,7 +9,10 @@ class TreeNode:
         self.right = None
 
     def print_tree(self):
-        print(self.cl, self.is_leaf, self.depth)
+        print('This node splits the dataset on ', self.best_split, 'attribute')
+        print('The dataset on this node is class ', self.cl)
+        print('This node is leaf', self.is_leaf)
+        print('This node is in depth', self.depth)
         if self.left:
             self.left.print_tree()
         if self.right:

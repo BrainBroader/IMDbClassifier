@@ -6,7 +6,7 @@ from dochandler import vectorizing
 
 class RandomForest:
 
-    def __init__(self, n_trees=200, max_depth=5, features=80, min_leaf=3):
+    def __init__(self, n_trees=100, max_depth=math.inf, features=80, min_leaf=3):
         self.n_trees = n_trees
         self.max_depth = max_depth
         self.min_leaf = min_leaf
@@ -50,9 +50,9 @@ class RandomForest:
         """
         vector = np.array(vectorizing(documents, vocabulary))
         predictions = []
-        probabilities = np.array((vector.shape[0], 2))
-        for doc in vector:
-            percents = np.mean([t.predict_class(doc) for t in self.trees], axis=0)
+        probabilities = np.zeros((len(documents), 2))
+        for doc in range(vector.shape[0]):
+            percents = np.mean([t.predict_class(vector[doc]) for t in self.trees], axis=0)
             predictions.append([1 if percents > 0.5 else 0])
             probabilities[doc, 0] = 1 - percents
             probabilities[doc, 1] = percents
