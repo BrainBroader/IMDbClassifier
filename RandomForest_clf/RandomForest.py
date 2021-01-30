@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from RandomForest_clf.DecisionTree import DecisionTree
-from dochandler import vectorizing
+from analysis import vectorizing
 
 
 class RandomForest:

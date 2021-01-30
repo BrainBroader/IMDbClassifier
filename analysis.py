@@ -8,7 +8,7 @@ from nltk.stem import PorterStemmer
 # nltk.download('stopwords')
 
 
-def extract_vocabulary(documents, n_features):
+def frequent_features(documents, n_features):
     """ Extracts the n_features most frequents terms from given set of documents.
     Args:
 

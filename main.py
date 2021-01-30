@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from metrics import precision_recall, f1, accuracy
 from RandomForest_clf.RandomForest import RandomForest
-from dochandler import extract_vocabulary
+from analysis import frequent_features
 
 
 def read_data(path):
@@ -103,7 +103,7 @@ def main():
             fold_target = train_target
 
         feature_size = 100
-        vocabulary = extract_vocabulary(train_data, feature_size)
+        vocabulary = frequent_features(train_data, feature_size)
         print(f'[INFO] - Fitting Random forest classifier using', feature_size, ' features...')
         rf.fit(fold_data, fold_target, vocabulary)
 
