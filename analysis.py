@@ -2,6 +2,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import PorterStemmer
 
+
 # TODO: remove comments before sending assignment
 # import nltk
 # nltk.download('stopwords')
@@ -35,14 +36,11 @@ def frequent_features(documents, n_features):
 
 def analyze(document):
     """ Analyzes a document.
-
     The document is transformed to lower case and tokenized.
     Then punctuation and stopwords are removed. Also, stemming is used.
-
     Args:
         document:
             A document as a string.
-
     Returns:
         A set of extracted tokens from the document.
     """
@@ -69,15 +67,12 @@ def analyze(document):
 
 def create_vector(document, vocabulary):
     """ Creates a vector of attributes for a document.
-
     The vector is of vocabulary size and each position is 1 if the document term is in vocabulary, otherwise 0.
-
     Args:
         document:
             A document as a string.
         vocabulary:
             A set of terms from documents of training collection.
-
     Returns:
         The document vector.
     """
@@ -87,6 +82,24 @@ def create_vector(document, vocabulary):
     for word in vocabulary:
         if word in tokens:
             vector.append(1)
+
         else:
             vector.append(0)
+    return vector
+
+
+def vectorizing(documents, vocab):
+    """
+    Args:
+        documents: A group of given documents.
+        vocab: the vocabulary.
+    Returns:
+        A 2 dim vector.
+    """
+
+    vector = []
+
+    for document in documents:
+        vector.append(create_vector(document, vocab))
+
     return vector
