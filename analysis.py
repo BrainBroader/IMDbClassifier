@@ -2,18 +2,39 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import PorterStemmer
 
+import nltk
+nltk.download('stopwords')
 
-# TODO: remove comments before sending assignment
-# import nltk
-# nltk.download('stopwords')
+
+def extract_vocabulary(documents):
+    """ Extracts vocabulary from given set of documents.
+
+    Args:
+        documents:
+            A list of documents as strings.
+
+    Returns:
+        The vocabulary set.
+    """
+    vocabulary = set()
+
+    for document in documents:
+        tokens = analyze(document)
+        vocabulary.update(tokens)
+
+    return vocabulary
 
 
 def frequent_features(documents, n_features):
     """ Extracts the n_features most frequents terms from given set of documents.
+
     Args:
 
-        n_features: number of features.
-        documents: A list of documents as strings.
+        n_features:
+            number of features.
+        documents:
+            A list of documents as strings.
+
     Returns:
         The vocabulary set.
     """
@@ -37,11 +58,14 @@ def frequent_features(documents, n_features):
 
 def analyze(document):
     """ Analyzes a document.
+
     The document is transformed to lower case and tokenized.
     Then punctuation and stopwords are removed. Also, stemming is used.
+
     Args:
         document:
             A document as a string.
+
     Returns:
         A set of extracted tokens from the document.
     """
@@ -68,12 +92,15 @@ def analyze(document):
 
 def create_vector(document, vocabulary):
     """ Creates a vector of attributes for a document.
+
     The vector is of vocabulary size and each position is 1 if the document term is in vocabulary, otherwise 0.
+
     Args:
         document:
             A document as a string.
         vocabulary:
             A set of terms from documents of training collection.
+
     Returns:
         The document vector.
     """
@@ -83,7 +110,6 @@ def create_vector(document, vocabulary):
     for word in vocabulary:
         if word in tokens:
             vector.append(1)
-
         else:
             vector.append(0)
     return vector
@@ -93,14 +119,14 @@ def vectorizing(documents, vocab):
     """
 
     Args:
-        documents: A group of given documents.
-        vocab: the vocabulary.
+        documents:
+            A group of given documents.
+        vocab:
+            The vocabulary.
 
     Returns:
-        A 2 dim vector.
-
+        A 2D vector.
     """
-
     vector = []
 
     for document in documents:

@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from RandomForest_clf.TreeNode import TreeNode
+from models.tree_node import TreeNode
 
 
 class DecisionTree:

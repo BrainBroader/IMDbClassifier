@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from RandomForest_clf.DecisionTree import DecisionTree
+from models.decision_tree import DecisionTree
 from analysis import vectorizing
 
 
