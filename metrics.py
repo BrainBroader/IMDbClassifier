@@ -7,15 +7,12 @@ import numpy as np
 
 def accuracy(targets_true, targets_predict):
     """ Computes accuracy classification score.
-
     Accuracy is the fraction of correctly classified documents.
-
     Args:
         targets_true:
             The correct target classes, as a list.
         targets_predict:
             The predicted target classes by a classifier, as a list.
-
     Returns:
         The accuracy classification score, as a float.
     """
@@ -29,7 +26,6 @@ def accuracy(targets_true, targets_predict):
 
 def precision_recall(probabilities, targets_true, n_thresholds):
     """ Computes precision-recall curve using a given number thresholds.
-
     Args:
         probabilities:
             Predicted probabilities, as an array of size (number of documents, number of target classes)
@@ -37,7 +33,6 @@ def precision_recall(probabilities, targets_true, n_thresholds):
             The correct target classes, as a list.
         n_thresholds:
             Number of thresholds to be used, as integer.
-
     Returns:
         precision array of length (n_thresholds),
         recall array of length (n_thresholds),
@@ -83,13 +78,11 @@ def precision_recall(probabilities, targets_true, n_thresholds):
 
 def f1(precision, recall):
     """ Computes f1 measure.
-
     Args:
         precision:
             Precision values, as a list.
         recall:
             Recall values, as a list.
-
     Returns:
         F1 values for each precision-recall values.
     """

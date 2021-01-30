@@ -11,6 +11,7 @@ from nltk.stem import PorterStemmer
 def frequent_features(documents, n_features):
     """ Extracts the n_features most frequents terms from given set of documents.
     Args:
+
         n_features: number of features.
         documents: A list of documents as strings.
     Returns:
@@ -90,11 +91,14 @@ def create_vector(document, vocabulary):
 
 def vectorizing(documents, vocab):
     """
+
     Args:
         documents: A group of given documents.
         vocab: the vocabulary.
+
     Returns:
         A 2 dim vector.
+
     """
 
     vector = []
