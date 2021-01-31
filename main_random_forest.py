@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from file import read_data
 from analysis import frequent_features
 from models.random_forest import RandomForest
-from metrics import precision_recall, f1, accuracy
+from sklearn.metrics import accuracy_score as accuracy
+from metrics import precision_recall, f1
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
     dev_target = res[3]
     print(f'[INFO] - Total developer data {len(dev_data)}')
 
-    rf = RandomForest(3, 5)
+    rf = RandomForest(100, 10)
 
     accuracy_train = []
     accuracy_test = []
