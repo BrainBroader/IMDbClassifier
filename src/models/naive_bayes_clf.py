@@ -3,8 +3,8 @@ import math
 
 import numpy as np
 
-from analysis import extract_vocabulary
-from analysis import analyze
+from src.analysis import extract_vocabulary
+from src.analysis import analyze
 
 
 class MultinomialNaiveBayes:

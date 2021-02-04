@@ -1,7 +1,7 @@
 import numpy as np
 import math
-from models.decision_tree import DecisionTree
-from analysis import vectorizing
+from src.models.decision_tree import DecisionTree
+from src.analysis import vectorizing
 
 
 class RandomForest:

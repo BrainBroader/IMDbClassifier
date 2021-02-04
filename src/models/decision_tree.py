@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from models.tree_node import TreeNode
+from src.models.tree_node import TreeNode
 
 
 class DecisionTree:
